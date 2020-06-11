@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  common: &BASE
+    build:
+      context: .
+    volumes:
+      - .:/app
+
+  mongo:
+    image: mongo:3.6
+    networks:
+      default:
+        aliases:
+          - mongodb.test
+    ports:
+      - '27017:27017'
