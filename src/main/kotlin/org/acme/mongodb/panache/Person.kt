@@ -3,8 +3,10 @@ package org.acme.mongodb.panache
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.quarkus.mongodb.panache.MongoEntity
 import io.quarkus.mongodb.panache.PanacheMongoEntity
+import io.quarkus.runtime.annotations.RegisterForReflection
 import java.time.LocalDateTime
 
+@RegisterForReflection
 @MongoEntity(collection = "people")
 data class Person(
         var name: String,
