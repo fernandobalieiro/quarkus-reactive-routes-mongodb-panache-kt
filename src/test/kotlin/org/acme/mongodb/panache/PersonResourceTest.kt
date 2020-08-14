@@ -3,7 +3,9 @@ package org.acme.mongodb.panache
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType.JSON
-import org.acme.mongodb.panache.Status.ALIVE
+import org.acme.mongodb.panache.database.entity.Person
+import org.acme.mongodb.panache.database.entity.Status.ALIVE
+import org.acme.mongodb.panache.database.repository.PersonRepository
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll

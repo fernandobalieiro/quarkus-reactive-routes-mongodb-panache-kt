@@ -1,7 +1,9 @@
-package org.acme.mongodb.panache
+package org.acme.mongodb.panache.handler
 
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
+import org.acme.mongodb.panache.database.entity.Person
+import org.acme.mongodb.panache.database.repository.PersonRepository
 import org.bson.types.ObjectId
 import org.jboss.resteasy.annotations.SseElementType
 import org.jboss.resteasy.annotations.jaxrs.PathParam

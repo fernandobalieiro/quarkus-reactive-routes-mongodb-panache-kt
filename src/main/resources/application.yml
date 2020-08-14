@@ -2,3 +2,5 @@ quarkus:
   mongodb:
     connection-string: mongodb://mongo.test:27017
     database: person
+  vertx:
+    prefer-native-transport: true
