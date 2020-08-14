@@ -8,6 +8,7 @@ import org.acme.mongodb.panache.database.repository.PersonRepository
 import org.acme.mongodb.panache.response.PersonResponse
 import org.apache.http.HttpStatus.SC_CREATED
 import org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR
+import org.apache.http.HttpStatus.SC_NOT_FOUND
 import org.apache.http.HttpStatus.SC_OK
 import org.bson.types.ObjectId
 import javax.enterprise.context.ApplicationScoped
@@ -38,26 +39,22 @@ class PersonController(
         val personId = rc.pathParam("id")
 
         personRepository.findById(ObjectId(personId)).subscribe().with { person ->
-            try {
+            if (person != null) {
                 val personResponse = PersonResponse(person)
                 rc.response().end(jacksonKotlinModule.writeValueAsString(personResponse))
-            } catch (t: Throwable) {
-                t.printStackTrace()
-                rc.response().setStatusCode(SC_INTERNAL_SERVER_ERROR).end()
+            } else {
+                rc.response().setStatusCode(SC_NOT_FOUND).end()
             }
         }
     }
 
     private fun savePerson(rc: RoutingContext) {
-        safeHandler(rc) {
-            val person = jacksonKotlinModule.readValue<Person>(rc.bodyAsString)
+        val person = jacksonKotlinModule.readValue<Person>(rc.bodyAsString)
 
-            personRepository.persist(person).subscribe().with {
-                val personResponse = PersonResponse(person)
-                rc.response().setStatusCode(SC_CREATED).end(jacksonKotlinModule.writeValueAsString(personResponse))
-            }
+        personRepository.persist(person).subscribe().with {
+            val personResponse = PersonResponse(person)
+            rc.response().setStatusCode(SC_CREATED).end(jacksonKotlinModule.writeValueAsString(personResponse))
         }
-
     }
 
     fun delete(rc: RoutingContext) {
@@ -69,15 +66,6 @@ class PersonController(
             } else {
                 rc.response().setStatusCode(SC_INTERNAL_SERVER_ERROR).end()
             }
-        }
-    }
-
-    fun safeHandler(rc: RoutingContext, routeHandler: () -> Unit) {
-        try {
-            routeHandler()
-        } catch (t: Throwable) {
-            t.printStackTrace()
-            rc.response().setStatusCode(SC_INTERNAL_SERVER_ERROR).end()
         }
     }
 }

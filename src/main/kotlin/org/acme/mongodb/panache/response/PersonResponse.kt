@@ -1,6 +1,7 @@
 package org.acme.mongodb.panache.response
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import org.acme.mongodb.panache.database.entity.Person
@@ -13,7 +14,7 @@ data class PersonResponse(
 
         val name: String,
 
-        @field: JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
+        @field: JsonFormat(shape = STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")
         val birthDate: Date,
 
         val status: Status
