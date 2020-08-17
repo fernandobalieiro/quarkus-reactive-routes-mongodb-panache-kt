@@ -4,6 +4,7 @@ import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType.JSON
 import org.acme.mongodb.panache.database.entity.Person
+import org.acme.mongodb.panache.database.entity.Status
 import org.acme.mongodb.panache.database.entity.Status.ALIVE
 import org.acme.mongodb.panache.database.repository.PersonRepository
 import org.hamcrest.CoreMatchers.`is`
@@ -17,7 +18,7 @@ import javax.inject.Inject
 
 @QuarkusTest
 @TestInstance(PER_CLASS)
-class PersonResourceTest {
+class PersonRoutesTest {
 
     @Inject
     lateinit var personRepository: PersonRepository
@@ -88,18 +89,26 @@ class PersonResourceTest {
 
     @Test
     fun testUpdateEndpoint() {
+        val personToUpdate = Person(
+                name = "Person to be Updated",
+                status = ALIVE
+        )
+
+        personRepository.persist(personToUpdate).await().atMost(Duration.ofSeconds(2))
+
         val payload = mapOf(
-                "name" to "Person 2 Updated",
-                "status" to "DEAD"
+                "name" to "Person Updated",
+                "status" to Status.DEAD
         )
 
         given()
                 .body(payload)
                 .contentType(JSON)
-                .`when`().put("/persons/{id}", person2.id.toString())
+                .`when`().put("/persons/{id}", personToUpdate.id.toString())
                 .then()
                 .statusCode(200)
-                .body("name", `is`("Person 2 Updated"))
+                .body("name", `is`("Person Updated"))
+                .body("status", `is`("DEAD"))
     }
 
     @Test
