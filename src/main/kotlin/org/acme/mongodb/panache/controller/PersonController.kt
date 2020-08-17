@@ -6,7 +6,6 @@ import io.vertx.ext.web.RoutingContext
 import org.acme.mongodb.panache.database.entity.Person
 import org.acme.mongodb.panache.database.repository.PersonRepository
 import org.acme.mongodb.panache.response.PersonResponse
-import org.apache.http.HttpStatus.SC_BAD_REQUEST
 import org.apache.http.HttpStatus.SC_CREATED
 import org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR
 import org.apache.http.HttpStatus.SC_NOT_FOUND
@@ -33,29 +32,26 @@ class PersonController(
         val payload = jacksonKotlinModule.readValue<Person>(rc.bodyAsString)
 
         personRepository.findById(ObjectId(personId))
-                .onItem().apply { person ->
-                    if (person != null) {
-                        person.birthDate = payload.birthDate
-                        person.name = payload.name
-                        person.status = payload.status
-                        person
-                    } else {
-                        throw IllegalArgumentException("An Invalid Person Id was provided")
-                    }
+                .onItem().ifNull().failWith {
+                    rc.response().setStatusCode(SC_NOT_FOUND).end()
+                    IllegalArgumentException("An Invalid Person Id was provided")
                 }
-                .onItem().apply { person ->
+                .onItem().ifNotNull().apply { person ->
+                    person.birthDate = payload.birthDate
+                    person.name = payload.name
+                    person.status = payload.status
+
                     personRepository.update(person).subscribe().with(
                             {
                                 rc.response().setStatusCode(SC_OK).end(jacksonKotlinModule.writeValueAsString(PersonResponse(person)))
                             },
                             { t: Throwable ->
-                                when (t) {
-                                    is IllegalArgumentException -> rc.response().setStatusCode(SC_BAD_REQUEST).end()
-                                }
+                                t.printStackTrace()
                                 rc.response().setStatusCode(SC_INTERNAL_SERVER_ERROR).end()
                             }
                     )
-                }.subscribe().with { }
+                }
+                .subscribe().with { }
     }
 
     fun list(rc: RoutingContext) {
@@ -70,14 +66,15 @@ class PersonController(
     fun getById(rc: RoutingContext) {
         val personId = rc.pathParam("id")
 
-        personRepository.findById(ObjectId(personId)).subscribe().with { person ->
-            if (person != null) {
-                val personResponse = PersonResponse(person)
-                rc.response().end(jacksonKotlinModule.writeValueAsString(personResponse))
-            } else {
-                rc.response().setStatusCode(SC_NOT_FOUND).end()
-            }
-        }
+        personRepository.findById(ObjectId(personId))
+                .onItem().ifNull().failWith {
+                    rc.response().setStatusCode(SC_NOT_FOUND).end()
+                    IllegalArgumentException("An Invalid Person Id was provided")
+                }
+                .onItem().ifNotNull().apply { person ->
+                    rc.response().end(jacksonKotlinModule.writeValueAsString(PersonResponse(person)))
+                }
+                .subscribe().with { }
     }
 
     fun delete(rc: RoutingContext) {
