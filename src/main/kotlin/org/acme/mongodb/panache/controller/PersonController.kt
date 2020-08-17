@@ -23,7 +23,7 @@ class PersonController(
         val person = jacksonKotlinModule.readValue<Person>(rc.bodyAsString)
 
         personRepository.persist(person)
-                .onItem().apply {
+                .onItem().transform {
                     val personResponse = PersonResponse(person)
                     rc.response().setStatusCode(SC_CREATED).end(jacksonKotlinModule.writeValueAsString(personResponse))
                 }
@@ -42,13 +42,13 @@ class PersonController(
                     rc.response().setStatusCode(SC_NOT_FOUND).end()
                     IllegalArgumentException("An Invalid Person Id was provided")
                 }
-                .onItem().ifNotNull().apply { person ->
+                .onItem().ifNotNull().transform { person ->
                     person.birthDate = payload.birthDate
                     person.name = payload.name
                     person.status = payload.status
 
                     personRepository.update(person)
-                            .onItem().apply {
+                            .onItem().transform {
                                 rc.response().setStatusCode(SC_OK).end(jacksonKotlinModule.writeValueAsString(PersonResponse(person)))
                             }
                             .onFailure().invoke { t: Throwable ->
@@ -64,7 +64,7 @@ class PersonController(
 
     fun list(rc: RoutingContext) {
         personRepository.findAll().list<Person>()
-                .onItem().apply { people ->
+                .onItem().transform { people ->
                     val peopleResponse = people.map { person ->
                         PersonResponse(person)
                     }
@@ -84,7 +84,7 @@ class PersonController(
                     rc.response().setStatusCode(SC_NOT_FOUND).end()
                     IllegalArgumentException("An Invalid Person Id was provided")
                 }
-                .onItem().ifNotNull().apply { person ->
+                .onItem().ifNotNull().transform { person ->
                     rc.response().end(jacksonKotlinModule.writeValueAsString(PersonResponse(person)))
                 }
                 .onFailure().invoke { t: Throwable ->
@@ -97,7 +97,7 @@ class PersonController(
         val personId = rc.pathParam("id")
 
         personRepository.deleteById(ObjectId(personId))
-                .onItem().apply { success ->
+                .onItem().transform { success ->
                     if (success) {
                         rc.response().setStatusCode(SC_OK).end()
                     } else {
