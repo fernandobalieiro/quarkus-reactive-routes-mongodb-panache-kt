@@ -17,7 +17,7 @@ class PersonRoutes(
 
         router.get("/persons").handler { rc -> personController.list(rc) }
         router.post("/persons").handler { rc -> personController.create(rc) }
-        router.put("/persons").handler { rc -> personController.update(rc) }
+        router.put("/persons/:id").handler { rc -> personController.update(rc) }
         router.get("/persons/:id").handler { rc -> personController.getById(rc) }
         router.delete("/persons/:id").handler { rc -> personController.delete(rc) }
     }
